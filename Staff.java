@@ -64,139 +64,78 @@ public class Staff {
         return button;
     }
 }
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Staff Team</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      padding: 20px;
+public class MotorPHStaffTeam {
+    private JFrame frame;
+    private JTable staffTable;
+    private DefaultTableModel staffModel;
+
+    public MotorPHStaffTeam() {
+        frame = new JFrame("MotorPH Staff Team");
+        frame.setSize(600, 400);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+
+        // Table columns
+        String[] columns = {"Employee ID", "Name", "Department", "Position"};
+        staffModel = new DefaultTableModel(columns, 0);
+        staffTable = new JTable(staffModel);
+        JScrollPane scrollPane = new JScrollPane(staffTable);
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        // Add Staff button
+        JButton addButton = new JButton("Add Staff");
+        frame.add(addButton, BorderLayout.SOUTH);
+
+        addButton.addActionListener(e -> showAddStaffDialog());
+
+        frame.setVisible(true);
     }
-    h2 {
-      text-align: center;
+
+    private void showAddStaffDialog() {
+        JTextField idField = new JTextField(10);
+        JTextField nameField = new JTextField(10);
+        JTextField deptField = new JTextField(10);
+        JTextField positionField = new JTextField(10);
+
+        JPanel panel = new JPanel(new GridLayout(4, 2));
+        panel.add(new JLabel("Employee ID:"));
+        panel.add(idField);
+        panel.add(new JLabel("Name:"));
+        panel.add(nameField);
+        panel.add(new JLabel("Department:"));
+        panel.add(deptField);
+        panel.add(new JLabel("Position:"));
+        panel.add(positionField);
+
+        int result = JOptionPane.showConfirmDialog(null, panel,
+                "Add New Staff", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String id = idField.getText().trim();
+            String name = nameField.getText().trim();
+            String dept = deptField.getText().trim();
+            String pos = positionField.getText().trim();
+
+            if (!id.isEmpty() && !name.isEmpty() && !dept.isEmpty() && !pos.isEmpty()) {
+                staffModel.addRow(new Object[]{id, name, dept, pos});
+            } else {
+                JOptionPane.showMessageDialog(frame,
+                        "All fields are required.",
+                        "Input Error",
+                        JOptionPane.WARNING_MESSAGE);
+            }
+        }
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      margin-bottom: 20px;
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(MotorPHStaffTeam::new);
     }
-    th, td {
-      padding: 12px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-    button {
-      padding: 10px 15px;
-      border: none;
-      background: #007BFF;
-      color: white;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 10;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.5);
-    }
-    .modal-content {
-      background-color: #fff;
-      margin: 10% auto;
-      padding: 20px;
-      width: 320px;
-      border-radius: 8px;
-    }
-    .modal-content input {
-      width: 100%;
-      padding: 8px;
-      margin-top: 10px;
-      margin-bottom: 20px;
-    }
-    .close {
-      float: right;
-      font-size: 20px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
+}
 
-  <h2>Staff Team</h2>
 
-  <button id="addStaffBtn">+ Add Staff</button>
 
-  <table id="staffTable">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Position</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Staff members will be added here -->
-    </tbody>
-  </table>
-
-  <!-- Modal -->
-  <div id="staffModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeModal">&times;</span>
-      <h3>Add Staff Member</h3>
-      <input type="text" id="name" placeholder="Full Name" required>
-      <input type="email" id="email" placeholder="Email" required>
-      <input type="text" id="position" placeholder="Position" required>
-      <button onclick="addStaff()">Add</button>
-    </div>
-  </div>
-
-  <script>
-    const addStaffBtn = document.getElementById("addStaffBtn");
-    const modal = document.getElementById("staffModal");
-    const closeModal = document.getElementById("closeModal");
-
-    addStaffBtn.onclick = () => modal.style.display = "block";
-    closeModal.onclick = () => modal.style.display = "none";
-    window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; }
-
-    function addStaff() {
-      const name = document.getElementById("name").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const position = document.getElementById("position").value.trim();
-
-      if (!name || !email || !position) {
-        alert("Please fill in all fields.");
-        return;
-      }
-
-      const table = document.getElementById("staffTable").getElementsByTagName("tbody")[0];
-      const newRow = table.insertRow();
-
-      newRow.insertCell(0).textContent = name;
-      newRow.insertCell(1).textContent = email;
-      newRow.insertCell(2).textContent = position;
-
-      // Clear form
-      document.getElementById("name").value = "";
-      document.getElementById("email").value = "";
-      document.getElementById("position").value = "";
-      modal.style.display = "none";
-    }
-  </script>
-
-</body>
-</html>
 
