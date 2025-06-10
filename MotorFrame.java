@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 
 public class MotorFrame extends JFrame implements ActionListener{
     
-    JButton payroll, attendance, staff, home;
+    JButton payroll, attendance, home;
     JLabel motorPH;
     JPanel menuPane, logoPane, separator;
     
@@ -36,7 +36,6 @@ public class MotorFrame extends JFrame implements ActionListener{
         this.setSize(800, 500);
         this.setTitle("MotorPH Payroll");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setResizable(false);
         this.getContentPane().setBackground(Color.WHITE);
         this.setLayout(null);
         
@@ -45,15 +44,6 @@ public class MotorFrame extends JFrame implements ActionListener{
         menuPane.setBackground(null);
         menuPane.setLayout(new FlowLayout(FlowLayout.TRAILING, 20, 10));
         menuPane.setBounds(485, 13, 300, 25);
-        
-        staff = new JButton();
-        staff.setBounds(530, 13, 40, 15);
-        staff.addActionListener(this);
-        staff.setText("STAFF");
-        staff.setFont(new Font("DIN Alternate", Font.PLAIN, 12));
-        staff.setForeground(new Color(0x202A3A));
-        staff.setBackground(Color.WHITE);
-        staff.setBorder(null);
         
         attendance = new JButton();
         attendance.setBounds(625, 13, 75, 15);
@@ -84,7 +74,6 @@ public class MotorFrame extends JFrame implements ActionListener{
         
         // Add buttons
         menuPane.add(home);
-        menuPane.add(staff);
         menuPane.add(attendance);
         menuPane.add(payroll);
         
@@ -110,11 +99,6 @@ public class MotorFrame extends JFrame implements ActionListener{
        if (e.getSource()==attendance) {
            this.dispose();
            Attendance attWin = new Attendance();
-       }
-       
-       if (e.getSource()==staff) {
-           this.dispose();
-           Staff staffWin = new Staff();
        }
        
        if (e.getSource()==home) {
