@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 
 public class MotorFrame extends JFrame implements ActionListener{
     
-    JButton payroll, attendance, home;
+    JButton payroll, attendance;
     JLabel motorPH;
     JPanel menuPane, logoPane, separator;
     
@@ -33,7 +33,7 @@ public class MotorFrame extends JFrame implements ActionListener{
         
         logoPane.add(motorPH);
         
-        this.setSize(800, 500);
+        this.setSize(800, 700);
         this.setTitle("MotorPH Payroll");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.getContentPane().setBackground(Color.WHITE);
@@ -63,17 +63,7 @@ public class MotorFrame extends JFrame implements ActionListener{
         payroll.setBackground(Color.WHITE);
         payroll.setBorder(null);
         
-        home = new JButton();
-        home.setBounds(430, 13, 40, 15);
-        home.addActionListener(this);
-        home.setText("HOME");
-        home.setFont(new Font("DIN Alternate", Font.PLAIN, 12));
-        home.setForeground(new Color(0x202A3A));
-        home.setBackground(Color.WHITE);
-        home.setBorder(null);
-        
         // Add buttons
-        menuPane.add(home);
         menuPane.add(attendance);
         menuPane.add(payroll);
         
@@ -99,11 +89,6 @@ public class MotorFrame extends JFrame implements ActionListener{
        if (e.getSource()==attendance) {
            this.dispose();
            Attendance attWin = new Attendance();
-       }
-       
-       if (e.getSource()==home) {
-           this.dispose();
-           Home homeWin = new Home();
        }
     }
 }
