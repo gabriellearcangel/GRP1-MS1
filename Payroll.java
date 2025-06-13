@@ -305,7 +305,7 @@ public class Payroll extends MotorFrame implements ActionListener {
             this.pagIbigNumber = pagIbigNumber;
 
             setTitle("Employee Details - " + firstName + " " + lastName);
-            setSize(420, 440);
+            setSize(420, 475);
             setLocationRelativeTo(null);
             setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             setLayout(new BorderLayout());
