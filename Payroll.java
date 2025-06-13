@@ -8,22 +8,54 @@ import java.awt.event.*;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import javax.swing.event.ListSelectionEvent;
 
 public class Payroll extends MotorFrame implements ActionListener {
 
-    JButton newEmployeeBtn, viewEmployeeBtn;
+    JButton newEmployeeBtn, viewEmployeeBtn, updateEmployeeBtn, deleteEmployeeBtn;
     JTable employeeTable;
     DefaultTableModel tableModel;
     String[] columnNames = {"Employee #", "Last Name", "First Name", "SSS #", "PhilHealth #", "TIN", "Pag-IBIG #"};
-
+    JTextField empNumField, lastNameField, firstNameField, sssField, philHealthField, tinField, pagIbigField;
+    JPanel detailsPanel;
+    
     Payroll() {
         MotorFrame payFrame = new MotorFrame();
+        
+        // Text fields for employee details
+        empNumField = new JTextField();
+        lastNameField = new JTextField();
+        firstNameField = new JTextField();
+        sssField = new JTextField();
+        philHealthField = new JTextField();
+        tinField = new JTextField();
+        pagIbigField = new JTextField();
+        
+        // Text field layout
+        detailsPanel = new JPanel(new GridLayout(7, 2));
+        detailsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        detailsPanel.add(new JLabel("Employee #:"));
+        detailsPanel.add(empNumField);
+        detailsPanel.add(new JLabel("Last Name:"));
+        detailsPanel.add(lastNameField);
+        detailsPanel.add(new JLabel("First Name:"));
+        detailsPanel.add(firstNameField);
+        detailsPanel.add(new JLabel("SSS #:"));
+        detailsPanel.add(sssField);
+        detailsPanel.add(new JLabel("Philhealth #:"));
+        detailsPanel.add(philHealthField);
+        detailsPanel.add(new JLabel("TIN:"));
+        detailsPanel.add(tinField);
+        detailsPanel.add(new JLabel("Pag-Ibig #:"));
+        detailsPanel.add(pagIbigField);
+        detailsPanel.setBounds(50,450, 700, 180);
+        detailsPanel.setVisible(false);
 
         // Initialize table model and JTable
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Make table non-editable
+                return false; 
             }
         };
         employeeTable = new JTable(tableModel);
@@ -31,6 +63,34 @@ public class Payroll extends MotorFrame implements ActionListener {
         JScrollPane scrollPane = new JScrollPane(employeeTable);
         scrollPane.setBounds(50, 75, 700, 300);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(0x202A3A)));
+        
+        employeeTable.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = employeeTable.getSelectedRow();
+                updateEmployeeBtn.setEnabled(selectedRow != -1);
+                if (selectedRow != -1) {
+                    empNumField.setText((String) tableModel.getValueAt(selectedRow, 0));
+                    lastNameField.setText((String) tableModel.getValueAt(selectedRow, 1));
+                    firstNameField.setText((String) tableModel.getValueAt(selectedRow, 2));
+                    sssField.setText((String) tableModel.getValueAt(selectedRow, 3));
+                    philHealthField.setText((String) tableModel.getValueAt(selectedRow, 4));
+                    tinField.setText((String) tableModel.getValueAt(selectedRow, 5));
+                    pagIbigField.setText((String) tableModel.getValueAt(selectedRow, 6));
+                    
+                    detailsPanel.setVisible(true);
+                } else {
+                    empNumField.setText("");
+                    lastNameField.setText("");
+                    firstNameField.setText("");
+                    sssField.setText("");
+                    philHealthField.setText("");
+                    tinField.setText("");
+                    pagIbigField.setText("");
+                    
+                    detailsPanel.setVisible(false);
+                }
+            }
+        });
 
         // Load employee data from CSV
         loadEmployeeData();
@@ -55,11 +115,36 @@ public class Payroll extends MotorFrame implements ActionListener {
         newEmployeeBtn.setOpaque(true);
         newEmployeeBtn.setFocusable(false);
         newEmployeeBtn.addActionListener(this);
+        
+        // Button to update employee
+        updateEmployeeBtn = new JButton("Update");
+        updateEmployeeBtn.setBounds(250, 400, 150, 35);
+        updateEmployeeBtn.setFont(new Font("DIN Alternate", Font.BOLD, 16));
+        updateEmployeeBtn.setForeground(Color.WHITE);
+        updateEmployeeBtn.setBackground(new Color(0x202A3A));
+        updateEmployeeBtn.setBorderPainted(false);
+        updateEmployeeBtn.setOpaque(true);
+        updateEmployeeBtn.setFocusable(false);
+        updateEmployeeBtn.addActionListener(this);
+        
+        // Button to delete employee
+        deleteEmployeeBtn = new JButton("Delete");
+        deleteEmployeeBtn.setBounds(425, 400, 150, 35);
+        deleteEmployeeBtn.setFont(new Font("DIN Alternate", Font.BOLD, 16));
+        deleteEmployeeBtn.setForeground(Color.WHITE);
+        deleteEmployeeBtn.setBackground(new Color(0x202A3A));
+        deleteEmployeeBtn.setBorderPainted(false);
+        deleteEmployeeBtn.setOpaque(true);
+        deleteEmployeeBtn.setFocusable(false);
+        deleteEmployeeBtn.addActionListener(this);
 
         // Add components to frame
         payFrame.add(scrollPane);
         payFrame.add(viewEmployeeBtn);
         payFrame.add(newEmployeeBtn);
+        payFrame.add(updateEmployeeBtn);
+        payFrame.add(deleteEmployeeBtn);
+        payFrame.add(detailsPanel);
 
         payFrame.setVisible(true);
     }
@@ -96,11 +181,102 @@ public class Payroll extends MotorFrame implements ActionListener {
                 String philHealthNumber = (String) tableModel.getValueAt(selectedRow, 4);
                 String tin = (String) tableModel.getValueAt(selectedRow, 5);
                 String pagIbigNumber = (String) tableModel.getValueAt(selectedRow, 6);
-
-                new EmployeeDetailsFrame(employeeNumber, lastName, firstName, sssNumber, philHealthNumber, tin, pagIbigNumber);
+                
+                new EmployeeDetailsFrame(employeeNumber, lastName, firstName, sssNumber, philHealthNumber, tin, pagIbigNumber);         
             } else {
                 JOptionPane.showMessageDialog(null, "Please select an employee.");
             }
+        }
+        
+        if (e.getSource() == updateEmployeeBtn) {
+            int selectedRow = employeeTable.getSelectedRow();
+            if (selectedRow != -1) {
+                String [] updatedData = {
+                    empNumField.getText().trim(),
+                    lastNameField.getText().trim(),
+                    firstNameField.getText().trim(),
+                    sssField.getText().trim(),
+                    philHealthField.getText().trim(),
+                    tinField.getText().trim(),
+                    pagIbigField.getText().trim()
+                };
+                
+                for (int i = 0; i < updatedData.length; i++) {
+                    tableModel.setValueAt(updatedData[i], selectedRow, i);
+                }
+                
+                updateEmployeeInCSV(updatedData, selectedRow);
+                JOptionPane.showMessageDialog(null, "Employee updated successfully.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select an employee to update.");
+            }
+        }
+    
+        if (e.getSource() == deleteEmployeeBtn) {
+            int selectedRow = employeeTable.getSelectedRow();
+            if (selectedRow != -1) {
+                String employeeNumber = (String) tableModel.getValueAt(selectedRow, 0);
+                deleteEmployeeFromCSV(employeeNumber);
+                loadEmployeeData();
+                JOptionPane.showMessageDialog(null, "Employee deleted successfully.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select an employee to delete.");
+            }
+        }
+    }
+    
+    private void updateEmployeeInCSV(String[] updatedData, int rowIndex) {
+        try {
+            File inputFile = new File("employees.csv");
+            File tempFile = new File("temp_employees.csv");
+            
+            BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
+            
+            String line;
+            int currentRow = 0;
+            while ((line = reader.readLine()) != null) {
+                if (currentRow == rowIndex) {
+                    writer.write(String.join(",", updatedData));
+                } else {
+                    writer.write(line);
+                }
+                writer.newLine();
+                currentRow++;
+            }
+            writer.close();
+            reader.close();
+            
+            inputFile.delete();
+            tempFile.renameTo(inputFile);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error updating employee data: " + e.getMessage());
+        }
+    }
+    
+    private void deleteEmployeeFromCSV(String employeeNumber) {
+        try {
+            File inputFile = new File("employees.csv");
+            File tempFile = new File("temp_employees.csv");
+            
+            BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
+            
+            String line;
+            while((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                if (!data[0].equals(employeeNumber)) {
+                    writer.write(line);
+                    writer.newLine();
+                }
+            }
+            writer.close();
+            reader.close();
+            
+            inputFile.delete();
+            tempFile.renameTo(inputFile);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error deleting employee data: " + e.getMessage());
         }
     }
 
