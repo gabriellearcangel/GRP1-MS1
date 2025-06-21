@@ -1,0 +1,174 @@
+
+ * @author Mark Goyon
+ */
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+public class LogIn extends JFrame implements ActionListener {
+    
+    JLabel motorPH, title, userLbl, passwordLbl, success;
+    JTextField userTxt;
+    JPasswordField pass;
+    JPanel logoPane, separator, logInPanel;
+    JButton logButton;
+    private static final String EMPLOYEE_FILE = "employees.csv";
+    private static Map<String, String> employeeCredentials = new HashMap<>();
+    
+    LogIn() {
+        // Initialize UI components
+        ImageIcon prelogo = new ImageIcon("MotorPH Logo.png");
+        Image logo = prelogo.getImage();
+        Image motorLogo = logo.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
+        prelogo = new ImageIcon(motorLogo);
+        
+        logoPane = new JPanel();
+        logoPane.setPreferredSize(new Dimension(145, 35));
+        logoPane.setBackground(null);
+        logoPane.setBounds(5, 5, 150, 35);
+        
+        motorPH = new JLabel("MotorPH");
+        motorPH.setIcon(prelogo);
+        motorPH.setForeground(new Color(0x202A3A));
+        motorPH.setFont(new Font("DIN Alternate", Font.BOLD, 23));
+        motorPH.setIconTextGap(10);
+        motorPH.setVerticalAlignment(JLabel.TOP);
+        motorPH.setBounds(5, 5, 150, 30);
+        
+        logoPane.add(motorPH);
+        
+        this.setSize(800, 700);
+        this.setTitle("MotorPH Payroll");
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.getContentPane().setBackground(Color.WHITE);
+        this.setLayout(null);
+        
+        logInPanel = new JPanel();
+        logInPanel.setLayout(null);
+        logInPanel.setBounds(20, 75, 746, 250);
+        
+        title = new JLabel("Welcome");
+        title.setForeground(new Color(0xF8B32A));
+        title.setFont(new Font("DIN Alternate", Font.BOLD, 46));
+        title.setBounds(290, 10, 205, 60);
+        
+        // Username label and field (will accept employee numbers)
+        userLbl = new JLabel("Username");
+        userLbl.setBounds(220, 100, 80, 25);  // Adjusted width
+        userLbl.setForeground(new Color(0x202A3A));
+        userLbl.setFont(new Font("DIN Alternate", Font.PLAIN, 15));
+        
+        userTxt = new JTextField(20);
+        userTxt.setBounds(310, 100, 210, 25); // Adjusted position and width
+        
+        passwordLbl = new JLabel("Password");
+        passwordLbl.setBounds(220, 130, 80, 25);  // Adjusted width
+        passwordLbl.setForeground(new Color(0x202A3A));
+        passwordLbl.setFont(new Font("DIN Alternate", Font.PLAIN, 15));
+        
+        pass = new JPasswordField();
+        pass.setBounds(310, 130, 210, 25); // Adjusted position and width
+        
+        logButton = new JButton("Log In");
+        logButton.setBounds(330, 180, 80, 25);
+        logButton.addActionListener(this);
+        logButton.setFont(new Font("DIN Alternate", Font.PLAIN, 15));
+        logButton.setForeground(Color.WHITE);
+        logButton.setBackground(new Color(0x202A3A));
+        logButton.setBorder(null);
+        logButton.setOpaque(true);
+        
+        success = new JLabel("");
+        success.setBounds(250, 210, 300, 25);
+        success.setForeground(new Color(0xF90606));
+        success.setFont(new Font("DIN Alternate", Font.ITALIC, 15));
+        
+        logInPanel.add(title);
+        logInPanel.add(userLbl);
+        logInPanel.add(passwordLbl);
+        logInPanel.add(userTxt);
+        logInPanel.add(pass);
+        logInPanel.add(logButton);
+        logInPanel.add(success);
+        
+        separator = new JPanel();
+        separator.setBackground(new Color(0x202A3A));
+        separator.setBounds(20, 50, 746, 1);
+        
+        this.add(logoPane);
+        this.add(logInPanel);
+        this.add(separator);
+        
+        loadEmployeeCredentials();
+        this.setVisible(true);
+    }
+    
+    private void loadEmployeeCredentials() {
+        try (BufferedReader br = new BufferedReader(new FileReader(EMPLOYEE_FILE))) {
+            String line;
+            // Skip header
+            br.readLine();
+            while ((line = br.readLine()) != null) {
+                String[] data = line.split(",");
+                if (data.length >= 4) {
+                    String empNumber = data[0].trim();
+                    String password = data[3].trim(); // Assuming password is in 4th column
+                    employeeCredentials.put(empNumber, password);
+                }
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error loading employee data", 
+                "System Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == logButton) {
+            String username = userTxt.getText().trim();
+            String password = new String(pass.getPassword()).trim();
+            
+            if (isValidEmployee(username, password)) {
+                success.setText("");
+                this.dispose();
+                new Payroll(username); // Pass employee number to Payroll
+            } else {
+                success.setText("Invalid credentials - Use employee number");
+            }
+        }
+    }
+    
+    private boolean isValidEmployee(String username, String password) {
+        return employeeCredentials.containsKey(username) && 
+               employeeCredentials.get(username).equals(password);
+    }
+    
+    public static void initializeEmployeeFile() {
+        try {
+            java.nio.file.Path path = java.nio.file.Paths.get(EMPLOYEE_FILE);
+            if (!java.nio.file.Files.exists(path)) {
+                String header = "EmployeeNumber,EmployeeName,Birthday,Password,HourlyRate\n" +
+                               "10001,Sam Smith,1990-05-15,smith123,25.50\n" +
+                               "10002,Alex Johnson,1985-08-22,johnson456,30.00\n" +
+                               "10003,Maria Garcia,1992-03-10,garcia789,28.75";
+                java.nio.file.Files.write(path, header.getBytes());
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to create employee file: " + e.getMessage());
+        }
+    }
+    
+    public static void main(String[] args) {
+        initializeEmployeeFile();
+        new LogIn();
+    }
+}
