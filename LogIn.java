@@ -101,6 +101,31 @@ public class LogIn extends JFrame implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
        if(e.getSource()==logButton) {
+           String username = userTxt.getText().trim();
+           String password = new String(pass.getPassword());
+
+           // Get the valid employee numbers from Payroll class
+           String[] validEmployeeNumbers = Payroll.getEmployeeNumbers();
+
+           boolean isValidEmployee = false;
+           for (String empNum : validEmployeeNumbers) {
+               if (empNum.equals(username)) {
+                   isValidEmployee = true;
+                   break;
+               }
+           }
+
+           if (isValidEmployee) {
+               // For now, we're just checking the username (employee number)
+               // You might want to add password validation later
+               this.dispose();
+               new Payroll();
+           } else {
+               success.setText("Invalid employee number");
+           }
+       }
+    }
+}
            this.dispose();
            new Payroll();
         } 
