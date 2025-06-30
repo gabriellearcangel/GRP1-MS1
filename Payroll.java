@@ -17,12 +17,12 @@ public class Payroll extends MotorFrame implements ActionListener {
     DefaultTableModel tableModel;
     String[] columnNames = {"Employee #", "Last Name", "First Name", "SSS #", "PhilHealth #", "TIN", "Pag-IBIG #"};
     JTextField empNumField, lastNameField, firstNameField, sssField, philHealthField, tinField, pagIbigField;
+    JPasswordField passwordField;
     JPanel detailsPanel;
     
     Payroll() {
         MotorFrame payFrame = new MotorFrame();
         
-        // Text fields for employee details
         empNumField = new JTextField();
         lastNameField = new JTextField();
         firstNameField = new JTextField();
@@ -30,9 +30,9 @@ public class Payroll extends MotorFrame implements ActionListener {
         philHealthField = new JTextField();
         tinField = new JTextField();
         pagIbigField = new JTextField();
+        passwordField = new JPasswordField();
         
-        // Text field layout
-        detailsPanel = new JPanel(new GridLayout(7, 2));
+        detailsPanel = new JPanel(new GridLayout(8, 2));
         detailsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         detailsPanel.add(new JLabel("Employee #:"));
         detailsPanel.add(empNumField);
@@ -48,10 +48,11 @@ public class Payroll extends MotorFrame implements ActionListener {
         detailsPanel.add(tinField);
         detailsPanel.add(new JLabel("Pag-Ibig #:"));
         detailsPanel.add(pagIbigField);
-        detailsPanel.setBounds(50,450, 700, 180);
+        detailsPanel.add(new JLabel("Password:"));
+        detailsPanel.add(passwordField);
+        detailsPanel.setBounds(50, 450, 700, 220);
         detailsPanel.setVisible(false);
 
-        // Initialize table model and JTable
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -63,6 +64,8 @@ public class Payroll extends MotorFrame implements ActionListener {
         JScrollPane scrollPane = new JScrollPane(employeeTable);
         scrollPane.setBounds(50, 75, 700, 300);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(0x202A3A)));
+        
+        loadEmployeeData();
         
         employeeTable.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
             if (!e.getValueIsAdjusting()) {
@@ -76,6 +79,7 @@ public class Payroll extends MotorFrame implements ActionListener {
                     philHealthField.setText((String) tableModel.getValueAt(selectedRow, 4));
                     tinField.setText((String) tableModel.getValueAt(selectedRow, 5));
                     pagIbigField.setText((String) tableModel.getValueAt(selectedRow, 6));
+                    passwordField.setText("");
                     
                     detailsPanel.setVisible(true);
                 } else {
@@ -86,16 +90,15 @@ public class Payroll extends MotorFrame implements ActionListener {
                     philHealthField.setText("");
                     tinField.setText("");
                     pagIbigField.setText("");
+                    passwordField.setText("");
                     
                     detailsPanel.setVisible(false);
                 }
             }
         });
 
-        // Load employee data from CSV
         loadEmployeeData();
 
-        // Button to view employee details
         viewEmployeeBtn = new JButton("View Employee");
         viewEmployeeBtn.setBounds(50, 400, 150, 35);
         viewEmployeeBtn.setFont(new Font("DIN Alternate", Font.BOLD, 16));
@@ -105,7 +108,6 @@ public class Payroll extends MotorFrame implements ActionListener {
         viewEmployeeBtn.setFocusable(false);
         viewEmployeeBtn.addActionListener(this);
 
-        // Button to add new employee
         newEmployeeBtn = new JButton("New Employee");
         newEmployeeBtn.setBounds(600, 400, 150, 35);
         newEmployeeBtn.setFont(new Font("DIN Alternate", Font.BOLD, 16));
@@ -116,7 +118,6 @@ public class Payroll extends MotorFrame implements ActionListener {
         newEmployeeBtn.setFocusable(false);
         newEmployeeBtn.addActionListener(this);
         
-        // Button to update employee
         updateEmployeeBtn = new JButton("Update");
         updateEmployeeBtn.setBounds(250, 400, 150, 35);
         updateEmployeeBtn.setFont(new Font("DIN Alternate", Font.BOLD, 16));
@@ -127,7 +128,6 @@ public class Payroll extends MotorFrame implements ActionListener {
         updateEmployeeBtn.setFocusable(false);
         updateEmployeeBtn.addActionListener(this);
         
-        // Button to delete employee
         deleteEmployeeBtn = new JButton("Delete");
         deleteEmployeeBtn.setBounds(425, 400, 150, 35);
         deleteEmployeeBtn.setFont(new Font("DIN Alternate", Font.BOLD, 16));
@@ -138,7 +138,6 @@ public class Payroll extends MotorFrame implements ActionListener {
         deleteEmployeeBtn.setFocusable(false);
         deleteEmployeeBtn.addActionListener(this);
 
-        // Add components to frame
         payFrame.add(scrollPane);
         payFrame.add(viewEmployeeBtn);
         payFrame.add(newEmployeeBtn);
@@ -150,19 +149,28 @@ public class Payroll extends MotorFrame implements ActionListener {
     }
 
     private void loadEmployeeData() {
-        // Clear existing rows
         tableModel.setRowCount(0);
+        
         try (BufferedReader br = new BufferedReader(new FileReader("employees.csv"))) {
             String line;
+            boolean isFirstLine = true;
             while ((line = br.readLine()) != null) {
+                if (isFirstLine) {
+                    isFirstLine = false;
+                    continue;
+                }
+                
                 String[] data = line.split(",");
-                if (data.length == columnNames.length) {
-                    tableModel.addRow(data);
+                if(data.length >= 7) {
+                    String[] tableData = new String[7];
+                    System.arraycopy(data, 0, tableData, 0, 7);
+                    tableModel.addRow(tableData);
                 }
             }
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Error loading employee data: " + e.getMessage());
+            e.printStackTrace();
         }
+        tableModel.fireTableDataChanged();
     }
 
     @Override
@@ -191,7 +199,8 @@ public class Payroll extends MotorFrame implements ActionListener {
         if (e.getSource() == updateEmployeeBtn) {
             int selectedRow = employeeTable.getSelectedRow();
             if (selectedRow != -1) {
-                String [] updatedData = {
+                String originalEmployeeNumber = (String) tableModel.getValueAt(selectedRow, 0);
+                String[] updatedData = {
                     empNumField.getText().trim(),
                     lastNameField.getText().trim(),
                     firstNameField.getText().trim(),
@@ -205,8 +214,20 @@ public class Payroll extends MotorFrame implements ActionListener {
                     tableModel.setValueAt(updatedData[i], selectedRow, i);
                 }
                 
-                updateEmployeeInCSV(updatedData, selectedRow);
+                updateEmployeeInCSV(updatedData, originalEmployeeNumber);
                 JOptionPane.showMessageDialog(null, "Employee updated successfully.");
+                
+                loadEmployeeData();
+                empNumField.setText("");
+                lastNameField.setText("");
+                firstNameField.setText("");
+                sssField.setText("");
+                philHealthField.setText("");
+                tinField.setText("");
+                pagIbigField.setText("");
+                passwordField.setText("");
+                
+                detailsPanel.setVisible(false);
             } else {
                 JOptionPane.showMessageDialog(null, "Please select an employee to update.");
             }
@@ -225,7 +246,7 @@ public class Payroll extends MotorFrame implements ActionListener {
         }
     }
     
-    private void updateEmployeeInCSV(String[] updatedData, int rowIndex) {
+    private void updateEmployeeInCSV(String[] updatedData, String originalEmployeeNumber) {
         try {
             File inputFile = new File("employees.csv");
             File tempFile = new File("temp_employees.csv");
@@ -234,21 +255,42 @@ public class Payroll extends MotorFrame implements ActionListener {
             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
             
             String line;
-            int currentRow = 0;
+            boolean isFirstLine = true;
             while ((line = reader.readLine()) != null) {
-                if (currentRow == rowIndex) {
-                    writer.write(String.join(",", updatedData));
+                if (isFirstLine) {
+                    writer.write(line);
+                    writer.newLine();
+                    isFirstLine = false;
+                    continue;
+                }
+                
+                String[] data = line.split(",");
+                if (data.length > 0 && data[0].equals(originalEmployeeNumber)) {
+                    String newLine = String.join(",", updatedData);
+                    if (data.length >= 8 && new String(passwordField.getPassword()).trim().isEmpty()) {
+                        newLine += "," + data[7];
+                    } else {
+                        newLine += "," + new String(passwordField.getPassword()).trim();
+                    }
+                    
+                    writer.write(newLine);
                 } else {
                     writer.write(line);
                 }
+                
                 writer.newLine();
-                currentRow++;
-            }
+    }
+            
             writer.close();
             reader.close();
             
-            inputFile.delete();
-            tempFile.renameTo(inputFile);
+            if (!inputFile.delete()) {
+                throw new IOException("Could not delete original file");
+            }
+            
+            if (!tempFile.renameTo(inputFile)) {
+                throw new IOException("Could not rename temp file");
+            }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Error updating employee data: " + e.getMessage());
         }
@@ -402,7 +444,6 @@ public class Payroll extends MotorFrame implements ActionListener {
 
                     double grossPay = hourlyRate * workHours;
 
-                    // Deductions computed as percentage of gross pay (example rates)
                     double sssDeduction = grossPay * 0.11;
                     double philHealthDeduction = grossPay * 0.03;
                     double pagIbigDeduction = grossPay * 0.02;
@@ -490,7 +531,6 @@ public class Payroll extends MotorFrame implements ActionListener {
     }
     }
 
-    // Frame to add new employee
     class AddNewEmployeeFrame extends JFrame implements ActionListener {
         private final JTextField empNumField, lastNameField, firstNameField, sssField, philHealthField, tinField, pagIbigField;
         private final JButton submitBtn, cancelBtn;
@@ -507,7 +547,7 @@ public class Payroll extends MotorFrame implements ActionListener {
             getContentPane().setBackground(Color.WHITE);
 
             JPanel formPanel = new JPanel();
-            formPanel.setLayout(new GridLayout(7, 2, 12, 12));
+            formPanel.setLayout(new GridLayout(8, 2, 12, 12));
             formPanel.setBorder(new EmptyBorder(20, 30, 10, 30));
             formPanel.setBackground(Color.WHITE);
 
@@ -548,6 +588,11 @@ public class Payroll extends MotorFrame implements ActionListener {
             lblPagIbig.setFont(labelFont);
             pagIbigField = new JTextField();
             pagIbigField.setFont(fieldFont);
+            
+            JLabel lblPassword = new JLabel("Password:");
+            lblPassword.setFont(labelFont);
+            passwordField = new JPasswordField();
+            passwordField.setFont(fieldFont);
 
             formPanel.add(lblEmpNum);
             formPanel.add(empNumField);
@@ -563,6 +608,8 @@ public class Payroll extends MotorFrame implements ActionListener {
             formPanel.add(tinField);
             formPanel.add(lblPagIbig);
             formPanel.add(pagIbigField);
+            formPanel.add(lblPassword);
+            formPanel.add(passwordField);
 
             JPanel buttonPanel = new JPanel();
             buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 20));
@@ -597,46 +644,53 @@ public class Payroll extends MotorFrame implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == submitBtn) {
-                // Validate inputs
                 if (empNumField.getText().trim().isEmpty() ||
                         lastNameField.getText().trim().isEmpty() ||
                         firstNameField.getText().trim().isEmpty() ||
                         sssField.getText().trim().isEmpty() ||
                         philHealthField.getText().trim().isEmpty() ||
                         tinField.getText().trim().isEmpty() ||
-                        pagIbigField.getText().trim().isEmpty()) {
+                        pagIbigField.getText().trim().isEmpty() ||
+                        passwordField.getPassword().length == 0) {
                     JOptionPane.showMessageDialog(this, "Please fill in all fields.");
                     return;
                 }
-
-                // Append to CSV
-                String[] newEmployee = {
-                        empNumField.getText().trim(),
-                        lastNameField.getText().trim(),
-                        firstNameField.getText().trim(),
-                        sssField.getText().trim(),
-                        philHealthField.getText().trim(),
-                        tinField.getText().trim(),
-                        pagIbigField.getText().trim()
+                
+                String [] employeeTableData = {
+                    empNumField.getText().trim(),
+                    lastNameField.getText().trim(),
+                    firstNameField.getText().trim(),
+                    sssField.getText().trim(),
+                    philHealthField.getText().trim(),
+                    tinField.getText().trim(),
+                    pagIbigField.getText().trim()
                 };
-
-                try (FileWriter fw = new FileWriter("employees.csv", true)) {
-                    fw.write(String.join(",", newEmployee) + System.lineSeparator());
+                
+                String csvLine = String.join(",", employeeTableData) + "," + new String(passwordField.getPassword()).trim();
+                
+                try {
+                    File file = new File("employees.csv");
+                    boolean fileExists = file.exists() && file.length() > 0;
+                    
+                    FileWriter fw = new FileWriter(file, true);
+                    if(!fileExists) {
+                        fw.write("Employee #,Last Name,First Name,SSS #,Philhealth #,TIN,Pag-IBIG,Password\n");
+                    }
+                    fw.write(csvLine + System.lineSeparator());
+                    fw.close();
+                    
+                    parent.tableModel.addRow(employeeTableData);
+                    
+                    JOptionPane.showMessageDialog(this, "Employee added successfully.");
+                    dispose();
                 } catch (IOException ioException) {
                     JOptionPane.showMessageDialog(this, "Failed to save employee data: " + ioException.getMessage());
-                    return;
                 }
-
-                // Refresh table in parent Payroll
-                parent.loadEmployeeData();
-
-                JOptionPane.showMessageDialog(this, "Employee added successfully.");
-                dispose();
-
             } else if (e.getSource() == cancelBtn) {
                 dispose();
             }
         }
     }
 }
-
+        
+    
