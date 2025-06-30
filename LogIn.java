@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
 
 public class LogIn extends JFrame implements ActionListener{
     
@@ -13,7 +14,11 @@ public class LogIn extends JFrame implements ActionListener{
     JPanel logoPane, separator, logInPanel;
     JButton logButton;
     
-    LogIn() {
+    HashMap<String, String> logininfo = new HashMap<String, String>();
+    
+    LogIn(HashMap<String, String> loginInfoOriginal) {
+        logininfo = loginInfoOriginal;
+        
         ImageIcon prelogo = new ImageIcon("MotorPH Logo.png");
         Image logo = prelogo.getImage();
         Image motorLogo = logo.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
@@ -74,7 +79,7 @@ public class LogIn extends JFrame implements ActionListener{
         logButton.setBorder(null);
         logButton.setOpaque(true);
         
-        success = new JLabel("Placeholder");
+        success = new JLabel("");
         success.setBounds(320, 210, 300, 25);
         success.setForeground(new Color(0xF90606));
         success.setFont(new Font("DIN Alternate", Font.ITALIC, 15));
@@ -101,28 +106,23 @@ public class LogIn extends JFrame implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
        if(e.getSource()==logButton) {
-           String username = userTxt.getText().trim();
-           String password = new String(pass.getPassword());
-
-           // Get the valid employee numbers from Payroll class
-           String[] validEmployeeNumbers = Payroll.getEmployeeNumbers();
-
-           boolean isValidEmployee = false;
-           for (String empNum : validEmployeeNumbers) {
-               if (empNum.equals(username)) {
-                   isValidEmployee = true;
-                   break;
+           String employeeNumber = userTxt.getText();
+           String password = String.valueOf(pass.getPassword());
+           
+           if(logininfo.containsKey(employeeNumber)) {
+               if(logininfo.get(employeeNumber).equals(password)) {
+                   
+                   this.dispose();
+                   new Payroll();
+               } else {
+                   success.setText("Invalid log-in credentials");
                }
-           }
-
-           if (isValidEmployee) {
-               // For now, we're just checking the username (employee number)
-               // You might want to add password validation later
-               this.dispose();
-               new Payroll();
            } else {
-               success.setText("Invalid employee number");
+               success.setText("Invalid log-in credentials");
            }
-       }
+           
+           logInPanel.revalidate();
+           logInPanel.repaint();
+        } 
     }
 }
